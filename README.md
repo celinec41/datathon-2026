@@ -2,28 +2,33 @@
 
 ## 🔍 Overview
 
-This project builds a supervised machine learning model to predict how an individual's financial situation would change during a major economic shock similar to COVID-19.
+This project models how individuals with different demographic and financial profiles respond to large-scale economic shocks similar to COVID-19.
 
-Given demographic and financial characteristics, the model predicts one of three outcomes:
+Using supervised machine learning, we estimate how an individual's financial situation may change during a future crisis.
+Rather than predicting a single outcome, the model produces **probability estimates** for multiple possible financial impacts.
 
-* **1 — Improved**
-* **2 — Worsened**
-* **3 — Stayed Same**
+Given a person's financial and demographic characteristics, the model predicts the probability that their financial situation will:
 
-The final output functions as a simple prediction tool:
-a user enters their financial profile, and the model returns the most likely shock outcome.
+* **Improve**
+* **Remain stable**
+* **Worsen**
+
+These probability estimates allow us to quantify individual financial vulnerability and uncertainty under future economic shocks.
+
+The final system functions as a simple prediction tool:
+a user inputs their financial profile, and the model returns the probability distribution of potential financial outcomes.
 
 ---
 
 ## 🎯 Research Question
 
-> Which financial and demographic characteristics predict whether an individual’s financial situation improves, worsens, or remains stable during an economic shock?
+> Given an individual's demographic and financial characteristics, what is the probability distribution of their financial outcome during a future economic shock similar to COVID-19?
 
 We further examine:
 
-* How predicted outcomes vary across provinces
-* How vulnerability differs across age groups
-* Which financial factors most strongly drive financial deterioration
+* Which groups need protection during crises?
+* Which financial factors most strongly drive financial deterioration？
+* How predicted outcomes vary across provinces？
 
 ---
 
