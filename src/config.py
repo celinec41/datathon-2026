@@ -2,8 +2,11 @@
 
 DATA_PATH = "data/personal_finance_dataset.xlsx"
 
+SHEET_NAME = "datathon_finance"
+
 TARGET_COL = "PATTSITC"
 
+# Feature columns (after rename)
 FEATURES = [
     "PAGEMIEG",   # Age group
     "PPVRES",     # Province
@@ -24,3 +27,17 @@ CATEGORICAL_COLS = [
     "PEDUCMIE",
     "PFTENUR"
 ]
+
+# Reproducibility
+RANDOM_STATE = 42
+TEST_SIZE = 0.2
+
+# Model selection: "logreg", "rf", "hgb"
+DEFAULT_MODEL = "logreg"
+
+# Class labels (adjust if your dataset uses different integers)
+LABEL_MAP = {
+    1: "Improved",
+    2: "Worsened",
+    3: "Stayed Same"
+}
