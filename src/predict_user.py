@@ -1,30 +1,49 @@
 # src/predict_user.py
 import pandas as pd
 from .config import FEATURES, LABEL_MAP
+from .preprocess import prepare_features
 
 
-def predict_user(model, user_input: dict):
-    # Ensure all required feature columns exist (missing -> None)
+def _get_clf(model):
+    # Pipeline-safe
+    return model.named_steps["clf"] if hasattr(model, "named_steps") else model
+
+
+def predict_user(model, feature_names: list[str], user_input: dict):
+    """
+    Takes raw UI payload (FEATURES columns), applies SAME preprocessing as training
+    (impute + one-hot), aligns columns to training feature_names, then predicts.
+    """
+    # Ensure all expected raw feature columns exist
     row = {col: user_input.get(col, None) for col in FEATURES}
     user_df = pd.DataFrame([row], columns=FEATURES)
 
+    # Apply inference preprocessing (impute + one-hot on categorical cols)
+    X_user = prepare_features(user_df)
+
+    # Align to training dummy columns
+    X_user = X_user.reindex(columns=feature_names, fill_value=0)
+
+    clf = _get_clf(model)
+
+    # Predict probabilities if available
     if hasattr(model, "predict_proba"):
-        probabilities = model.predict_proba(user_df)[0]
-        classes = model.classes_
+        proba = model.predict_proba(X_user)[0]
+        classes = clf.classes_
 
         prob_dict = {
-            LABEL_MAP.get(int(cls), str(cls)): float(prob)
-            for cls, prob in zip(classes, probabilities)
+            LABEL_MAP.get(int(cls), str(cls)): float(p)
+            for cls, p in zip(classes, proba)
         }
         most_likely = max(prob_dict, key=prob_dict.get)
 
         return {
             "probabilities": prob_dict,
             "most_likely": most_likely,
-            "confidence": prob_dict[most_likely]
+            "confidence": prob_dict[most_likely],
         }
 
-    # Fallback if model doesn't support proba
-    pred = model.predict(user_df)[0]
+    # Fallback
+    pred = model.predict(X_user)[0]
     pred_label = LABEL_MAP.get(int(pred), str(pred))
-    return {"most_likely": pred_label, "confidence": None}
+    return {"most_likely": pred_label, "confidence": None, "probabilities": {}}

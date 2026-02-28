@@ -3,23 +3,25 @@ import numpy as np
 from .config import DATA_PATH, SHEET_NAME
 
 RENAME = {
-    "Age Group": "PAGEMIEG",
-    "Province of residence": "PPVRES",
-    "Education Level": "PEDUCMIE",
-    "After-Tax Income": "PEFATINC",
-    "Home Ownership": "PFTENUR",
-    "Mortgage Debt": "PWDPRMOR",
-    "Student Loan Debt": "PWDSLOAN",
-    "Credit Card Debt": "PWDSTCRD",
-    "Line of Credit Debt": "PWDSTLOC",
-    "Bank Deposits": "PWASTDEP",
-    "TFSA Balance": "PWATFS",
-    "COVID Financial Impact": "PATTSITC",
-
-    "Number of Earners": "PNBEARG",
-    "Work Status 2022": "PLFFPTME",
-    "Credit Card Payment": "PATTCRU",
-    "Home Value": "PWAPRVAL",
+    "PAGEMIEG":"Age Group",
+    "PWDSTCRD": "Credit Card Debt",
+    "PATTSITC": "COVID Financial Impact",
+    "PATTSKP": "Skipped Payments",
+    "PEDUCMIE": "Education Level",
+    "PEFATINC": "After-Tax Income",
+    "PFMTYPG": "Family Type",
+    "PFTENUR": "Home Ownership",
+    "PLFFPTME": "Work Status 2022",
+    "PNBEARG": "Number of Earners",
+    "PPVRES": "Province of residence",
+    "PWAPRVAL": "Home Value",
+    "PWASTDEP": "Bank Deposits",
+    "PWATFS": "TFSA Balance",
+    "PWDPRMOR": "Mortgage Debt",
+    "PWDSLOAN": "Student Loan Debt",
+    "PATTCRU": "Credit Card Payment",
+    "PWDSTLOC": "Line of Credit Debt",
+    "PWNETWPG": "Net Worth",
 }
 
 def load_data():
@@ -29,27 +31,32 @@ def load_data():
     df = df.rename(columns=RENAME)
 
     # True missing: 9 = Not stated
-    if "PEDUCMIE" in df.columns:
-        df["PEDUCMIE"] = df["PEDUCMIE"].replace(9, np.nan)
+    if "Education Level" in df.columns:
+        df["Education Level"] = df["Education Level"].replace(9, np.nan)
 
-    if "PNBEARG" in df.columns:
-        df["PNBEARG"] = df["PNBEARG"].replace(9, np.nan)
+    # Number of earners: 9 = not stated
+    if "Number of Earners" in df.columns:
+        df["Number of Earners"] = df["Number of Earners"].replace(9, np.nan)
+
+    if "Family Type" in df.columns:
+        df["Family Type"] = df["Family Type"].replace([4, 9, np.nan], np.nan)
 
     # Work status: 6 valid skip, 9 not stated -> treat as missing (handle later)
-    if "PLFFPTME" in df.columns:
-        df["PLFFPTME"] = df["PLFFPTME"].replace([6, 9], np.nan)
+    if "Work Status 2022" in df.columns:
+        df["Work Status 2022"] = df["Work Status 2022"].replace([6, 9], np.nan)
 
     # Credit card payment: 6 valid skip = no credit card (structural)
-    if "PATTCRU" in df.columns:
-        df["has_credit_card"] = (df["PATTCRU"] != 6).astype(int)
-        df.loc[df["PATTCRU"] == 6, "PATTCRU"] = np.nan
+    if "Credit Card Payment" in df.columns:
+        df["has_credit_card"] = (df["Credit Card Payment"] != 6).astype(int)
+        df.loc[df["Credit Card Payment"] == 6,"Credit Card Payment"] = np.nan
 
     # Structural: home value = 0 if renting (PFTENUR = 3)
-    if "PFTENUR" in df.columns and "PWAPRVAL" in df.columns:
-        df.loc[df["PFTENUR"] == 3, "PWAPRVAL"] = 0
+    if ("Home Ownership" in df.columns and "Home Value" in df.columns):
+        df.loc[df["Home Ownership"] == 3, "Home Value"] = 0
 
     # Structural: mortgage debt = 0 if not homeowner (PFTENUR != 2)
-    if "PFTENUR" in df.columns and "PWDPRMOR" in df.columns:
-        df.loc[df["PFTENUR"] != 2, "PWDPRMOR"] = 0
+    if ("Home Ownership" in df.columns and "Mortgage Debt" in df.columns):
+        df.loc[df["Home Ownership"] != 2, "Mortgage Debt"] = 0
+
 
     return df

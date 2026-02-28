@@ -18,6 +18,7 @@ class TrainResult:
     model: Any
     X_test: Any
     y_test: Any
+    feature_names: list[str]
 
 
 def _make_model(model_name: str):
@@ -51,6 +52,7 @@ def _make_model(model_name: str):
 
 def train_model(df, model_name: str = DEFAULT_MODEL) -> TrainResult:
     X, y, numeric_cols = prepare_data(df)
+    feature_names = X.columns.tolist()
 
     X_train, X_test, y_train, y_test = train_test_split(
         X, y,
@@ -71,7 +73,7 @@ def train_model(df, model_name: str = DEFAULT_MODEL) -> TrainResult:
         model = clf
 
     model.fit(X_train, y_train)
-    return TrainResult(model=model, X_test=X_test, y_test=y_test)
+    return TrainResult(model=model, X_test=X_test, y_test=y_test, feature_names=feature_names)
 
 
 def train_all_models(df):
