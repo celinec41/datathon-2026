@@ -204,6 +204,8 @@ jupyter notebook final_submission.ipynb
 
 ### 5️⃣ Run Interactive UI (Optional)
 
+The easiest way to explore our model is through the Streamlit interface.
+Run the following command in the project root:
 ```bash
 streamlit run ui/app_streamlit.py
 ```
