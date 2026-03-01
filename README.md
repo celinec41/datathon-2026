@@ -2,7 +2,7 @@
 ### SDSS Datathon 2026 Team 36
 
 ---
-![Impact Forecaster UI](assets/ui_page.png)
+![Impact Forecaster UI](ui_page.png)
 
 ## 🔍 Problem Overview
 
