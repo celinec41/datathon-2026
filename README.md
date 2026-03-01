@@ -155,8 +155,6 @@ DATATHON-2026/
 │
 ├── ui/
 │   └── app_streamlit.py
-│
-└── artifacts/
 ```
 
 ---
