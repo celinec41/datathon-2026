@@ -137,10 +137,29 @@ Confidence: 0.64
 ## 📁 Project Structure
 
 ```
-├── final_submission.ipynb
+DATATHON-2026/
+│
+├── final_submission.ipynb        
+├── README.md                    
+├── requirements.txt           
+│
 ├── data/
 │   └── personal_finance_dataset.xlsx
-├── README.md
+│
+├── src/                        
+│   ├── __init__.py
+│   ├── config.py
+│   ├── data_load.py
+│   ├── preprocess.py
+│   ├── train.py
+│   ├── evaluate.py
+│   ├── predict_user.py
+│   └── artifacts.py
+│
+├── ui/                          
+│   └── app_streamlit.py
+├── .gitignore
+└── venv/                    
 ```
 
 ---
