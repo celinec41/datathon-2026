@@ -51,8 +51,7 @@ def _make_model(model_name: str):
 
 
 def train_model(df, model_name: str = DEFAULT_MODEL) -> TrainResult:
-    X, y, numeric_cols = prepare_data(df)
-    feature_names = X.columns.tolist()
+    X, y, _ = prepare_data(df)
 
     X_train, X_test, y_train, y_test = train_test_split(
         X, y,
@@ -60,6 +59,11 @@ def train_model(df, model_name: str = DEFAULT_MODEL) -> TrainResult:
         random_state=RANDOM_STATE,
         stratify=y
     )
+
+    # lock feature columns to training set
+    feature_names = X_train.columns.tolist()
+    X_train = X_train.reindex(columns=feature_names, fill_value=0)
+    X_test = X_test.reindex(columns=feature_names, fill_value=0)
 
     clf = _make_model(model_name)
 
@@ -77,7 +81,4 @@ def train_model(df, model_name: str = DEFAULT_MODEL) -> TrainResult:
 
 
 def train_all_models(df):
-    results = {}
-    for name in ["logreg", "rf", "hgb"]:
-        results[name] = train_model(df, model_name=name)
-    return results
+    return {name: train_model(df, model_name=name) for name in ["logreg", "rf", "hgb"]}

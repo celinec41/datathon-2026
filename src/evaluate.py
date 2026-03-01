@@ -18,15 +18,24 @@ def evaluate_model(model, X_test, y_test):
         "balanced_accuracy": float(balanced_accuracy_score(y_test, preds)),
         "macro_f1": float(f1_score(y_test, preds, average="macro")),
         "weighted_f1": float(f1_score(y_test, preds, average="weighted")),
-        "report": classification_report(y_test, preds),
+        # both formats are handy
+        "report": classification_report(y_test, preds, output_dict=True),
+        "report_text": classification_report(y_test, preds),
         "confusion_matrix": confusion_matrix(y_test, preds),
+        "preds": preds,  # helpful for debugging/plots
     }
 
+    # ---- Probabilities (if supported) ----
+    if hasattr(model, "predict_proba"):
+        try:
+            proba = model.predict_proba(X_test)
+            out["proba"] = proba
+            out["pred_proba_max"] = proba.max(axis=1)
+            out["pred_class_from_proba"] = proba.argmax(axis=1)
+        except Exception:
+            pass
+
     # ---- Optional ROC-AUC (multi-class OVR) ----
-    # Only compute if:
-    # 1) model supports predict_proba
-    # 2) y_test has at least 2 classes
-    # 3) roc_auc_score succeeds (can fail if shapes/classes mismatch)
     if hasattr(model, "predict_proba"):
         unique_classes = np.unique(y_test)
         if unique_classes.size >= 2:
@@ -36,8 +45,6 @@ def evaluate_model(model, X_test, y_test):
                     roc_auc_score(y_test, proba, multi_class="ovr", average="macro")
                 )
             except (ValueError, AttributeError):
-                # ValueError: e.g., only one class present, or class mismatch
-                # AttributeError: predict_proba not actually usable
                 pass
 
     return out

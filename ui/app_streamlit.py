@@ -1,3 +1,4 @@
+# app_streamlit.py
 import os
 import sys
 from pathlib import Path
@@ -5,7 +6,6 @@ from contextlib import AbstractContextManager
 from typing import cast
 
 import joblib
-import pandas as pd
 import streamlit as st
 
 # -----------------------------
@@ -17,7 +17,7 @@ if ROOT_DIR not in sys.path:
 
 from src.data_load import load_data
 from src.train import train_model
-from src.config import FEATURES, LABEL_MAP, DEFAULT_MODEL
+from src.config import DEFAULT_MODEL
 from src.predict_user import predict_user
 
 # -----------------------------
@@ -26,7 +26,7 @@ from src.predict_user import predict_user
 st.set_page_config(page_title="Impact Forecaster", layout="wide")
 
 # -----------------------------
-# UI
+# UI CSS
 # -----------------------------
 st.markdown(
     """
@@ -38,14 +38,11 @@ st.markdown(
               #070b14;
   color: #ffffff;
 }
-
 .block-container { padding-top: 2.2rem; max-width: 1100px; }
 #MainMenu { visibility: hidden; }
 footer { visibility: hidden; }
 
-/* -----------------------------
-   GRID BACKGROUND
------------------------------ */
+/* GRID BACKGROUND */
 .stApp:before{
   content:"";
   position: fixed;
@@ -59,9 +56,7 @@ footer { visibility: hidden; }
   mask-image: radial-gradient(circle at 50% 20%, black 35%, transparent 72%);
 }
 
-/* -----------------------------
-   HERO
------------------------------ */
+/* HERO */
 .hero-wrap{
   padding: 34px 22px 26px 22px;
   border-radius: 24px;
@@ -69,7 +64,6 @@ footer { visibility: hidden; }
   border: 1px solid rgba(255,255,255,0.10);
   box-shadow: 0 10px 35px rgba(0,0,0,0.35);
 }
-
 .pill{
   display:inline-flex;
   gap:10px;
@@ -84,7 +78,6 @@ footer { visibility: hidden; }
   text-transform: uppercase;
   font-size: 14px;
 }
-
 .hero-title{
   margin: 20px 0 6px 0;
   font-size: 78px;
@@ -94,14 +87,12 @@ footer { visibility: hidden; }
   text-align:center;
   color: #ffffff;
 }
-
 .grad{
   background: linear-gradient(90deg, #ffffff, #ffffff, #ffffff);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
 }
-
 .hero-sub{
   margin-top: 14px;
   font-size: 26px;
@@ -109,11 +100,9 @@ footer { visibility: hidden; }
   color: #ffffff;
   text-align:center;
 }
-
 .hero-sub b{ color: #ffffff; }
 .hero-sub .good{ color: #2dd4bf; font-weight: 800; }
 .hero-sub .bad{ color: #ef4444; font-weight: 800; }
-
 .feature-row{
   margin-top: 30px;
   display:flex;
@@ -123,12 +112,9 @@ footer { visibility: hidden; }
   color: #ffffff;
   font-size: 18px;
 }
-
 .feature-item{ display:flex; align-items:center; gap: 10px; }
 
-/* -----------------------------
-   BUTTONS
------------------------------ */
+/* BUTTONS */
 div.stButton > button {
   border-radius: 16px !important;
   padding: 0.9rem 1.2rem !important;
@@ -139,53 +125,38 @@ div.stButton > button {
   box-shadow: 0 10px 22px rgba(0,0,0,0.25);
   transition: transform 0.08s ease-in-out;
 }
-
 div.stButton > button:hover {
   transform: translateY(-1px);
   border: 1px solid rgba(34,211,238,0.55) !important;
 }
 
-/* -----------------------------
-   FORM LABELS (Age, Province, etc.)
------------------------------ */
+/* FORM LABELS */
 label {
   color: #ffffff !important;
   font-weight: 700 !important;
   font-size: 18px !important;
 }
 
-/* -----------------------------
-   SELECTBOX
------------------------------ */
+/* SELECTBOX */
 div[data-baseweb="select"] {
   background-color: #111827 !important;
   border: 1px solid rgba(34,211,238,0.4) !important;
   border-radius: 14px !important;
 }
-
 div[data-baseweb="select"] span {
   color: #ffffff !important;
   font-size: 18px !important;
   font-weight: 600 !important;
 }
+div[role="listbox"] { background-color: #111827 !important; }
+div[role="option"] { color: #ffffff !important; }
 
-div[role="listbox"] {
-  background-color: #111827 !important;
-}
-
-div[role="option"] {
-  color: #ffffff !important;
-}
-
-/* -----------------------------
-   NUMBER INPUT
------------------------------ */
+/* NUMBER INPUT */
 div[data-baseweb="input"] {
   background-color: #111827 !important;
   border: 1px solid rgba(34,211,238,0.4) !important;
   border-radius: 14px !important;
 }
-
 input {
   color: #ffffff !important;
   background-color: #111827 !important;
@@ -203,33 +174,53 @@ input {
     """,
     unsafe_allow_html=True
 )
+
 # -----------------------------
-# Artifact helpers (SAVE A BUNDLE: model + feature_names)
+# Display labels ONLY (does NOT change dataset/model labels)
 # -----------------------------
+DISPLAY_LABELS = {
+    "Class 1": "Improved",
+    "Class 2": "Worsened",
+    "Class 3": "Stayed Same",
+    1: "Improved",
+    2: "Worsened",
+    3: "Stayed Same",
+    "1": "Improved",
+    "2": "Worsened",
+    "3": "Stayed Same",
+}
+
+def pretty_label(x) -> str:
+    return DISPLAY_LABELS.get(x, str(x))
+
+# -----------------------------
+# Model bundle: cache + optional artifacts
+# -----------------------------
+MODEL_VERSION = "v4-displaylabels-2026-02-28"
+ENABLE_ARTIFACTS = os.environ.get("ENABLE_ARTIFACTS", "1") == "1"
+
 ART_DIR = Path(ROOT_DIR) / "artifacts"
 ART_DIR.mkdir(parents=True, exist_ok=True)
 
 def artifact_path(model_name: str) -> Path:
-    # bump version so you don't load old-format artifacts
-    return ART_DIR / f"bundle_{model_name}_v2.joblib"
+    return ART_DIR / f"bundle_{model_name}_{MODEL_VERSION}.joblib"
 
 def save_artifact(model_name: str, bundle: dict):
+    if not ENABLE_ARTIFACTS:
+        return
     joblib.dump(bundle, artifact_path(model_name))
 
 def load_artifact(model_name: str):
+    if not ENABLE_ARTIFACTS:
+        return None
     p = artifact_path(model_name)
     if not p.exists():
         return None
     return joblib.load(p)
 
-# -----------------------------
-# Load model bundle (cached)
-# -----------------------------
 @st.cache_resource(show_spinner=False)
-def get_model_bundle(model_name: str = DEFAULT_MODEL):
+def get_model_bundle(model_name: str = DEFAULT_MODEL, version: str = MODEL_VERSION):
     bundle = load_artifact(model_name)
-
-    # If old artifact exists (like just a model or dict), ignore and retrain
     if isinstance(bundle, dict) and "model" in bundle and "feature_names" in bundle:
         return bundle, "loaded"
 
@@ -239,11 +230,8 @@ def get_model_bundle(model_name: str = DEFAULT_MODEL):
     save_artifact(model_name, bundle)
     return bundle, "trained"
 
-# -----------------------------
-# Prewarm model
-# -----------------------------
 with cast(AbstractContextManager[None], st.spinner("Loading model...")):
-    bundle, MODEL_STATUS = get_model_bundle(DEFAULT_MODEL)
+    bundle, MODEL_STATUS = get_model_bundle(DEFAULT_MODEL, MODEL_VERSION)
 
 MODEL = bundle["model"]
 FEATURE_NAMES = bundle["feature_names"]
@@ -393,6 +381,10 @@ elif st.session_state.step == 2:
         "After-Tax Income", min_value=0, value=int(payload["After-Tax Income"])
     )
 
+    # Optional: structural rule for renting
+    if payload["Home Ownership"] == 3:
+        payload["Mortgage Debt"] = 0
+
 # -----------------------------
 # Step 3
 # -----------------------------
@@ -410,6 +402,7 @@ elif st.session_state.step == 3:
 # -----------------------------
 elif st.session_state.step == 4:
     st.header("Debts")
+
     payload["Mortgage Debt"] = st.number_input(
         "Mortgage Debt", min_value=0, value=int(payload["Mortgage Debt"])
     )
@@ -445,13 +438,17 @@ else:
 
         if st.session_state.prediction:
             result = st.session_state.prediction
-            st.subheader(f"Predicted: {result['predicted']}")
+            st.subheader(f"Predicted: {pretty_label(result['predicted'])}")
 
             probs = result.get("probabilities", {})
-            for name in ["Worsened", "Stayed Same", "Improved"]:
-                p = float(probs.get(name, 0.0))
-                st.write(f"{name}: {p:.3f}")
-                st.progress(p)
+            if probs:
+                # show highest prob first
+                for name, p in sorted(probs.items(), key=lambda x: -x[1]):
+                    p = float(p)
+                    st.write(f"{pretty_label(name)}: {p:.3f}")
+                    st.progress(p)
+            else:
+                st.info("No probability output available for this model.")
 
     st.divider()
     st.button("Reset", on_click=reset_all)

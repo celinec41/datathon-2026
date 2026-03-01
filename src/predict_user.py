@@ -9,6 +9,15 @@ def _get_clf(model):
     return model.named_steps["clf"] if hasattr(model, "named_steps") else model
 
 
+def _label(cls):
+    # robust label mapping
+    try:
+        key = int(cls)
+    except Exception:
+        key = cls
+    return LABEL_MAP.get(key, str(cls))
+
+
 def predict_user(model, feature_names: list[str], user_input: dict):
     """
     Takes raw UI payload (FEATURES columns), applies SAME preprocessing as training
@@ -29,21 +38,22 @@ def predict_user(model, feature_names: list[str], user_input: dict):
     # Predict probabilities if available
     if hasattr(model, "predict_proba"):
         proba = model.predict_proba(X_user)[0]
-        classes = clf.classes_
 
-        prob_dict = {
-            LABEL_MAP.get(int(cls), str(cls)): float(p)
-            for cls, p in zip(classes, proba)
-        }
+        # prefer model.classes_ if present, else clf.classes_
+        classes = getattr(model, "classes_", None)
+        if classes is None:
+            classes = getattr(clf, "classes_", list(range(len(proba))))
+
+        prob_dict = {_label(cls): float(p) for cls, p in zip(classes, proba)}
         most_likely = max(prob_dict, key=prob_dict.get)
 
         return {
             "probabilities": prob_dict,
             "most_likely": most_likely,
-            "confidence": prob_dict[most_likely],
+            "confidence": float(prob_dict[most_likely]),
         }
 
-    # Fallback
+    # Fallback (no probabilities)
     pred = model.predict(X_user)[0]
-    pred_label = LABEL_MAP.get(int(pred), str(pred))
+    pred_label = _label(pred)
     return {"most_likely": pred_label, "confidence": None, "probabilities": {}}

@@ -1,7 +1,39 @@
+# src/preprocess.py
 import pandas as pd
 from .config import TARGET_COL, FEATURES, CATEGORICAL_COLS
 
-def prepare_data(df):
+
+def _impute_and_encode(X: pd.DataFrame) -> tuple[pd.DataFrame, list[str]]:
+    """
+    Shared preprocessing for BOTH training and inference:
+    - numeric: coerce to numeric, fill missing with median (fallback 0 if median is NaN)
+    - categorical: fill missing with "Unknown"
+    - one-hot encode categoricals (drop_first=False)
+    Returns (X_processed, numeric_cols)
+    """
+    numeric_cols = [c for c in FEATURES if c not in CATEGORICAL_COLS]
+    cat_cols = [c for c in CATEGORICAL_COLS if c in X.columns]
+
+    # numeric -> median (fallback 0)
+    for c in numeric_cols:
+        X[c] = pd.to_numeric(X[c], errors="coerce")
+        med = X[c].median()
+        if pd.isna(med):
+            med = 0
+        X[c] = X[c].fillna(med)
+
+    # categorical -> "Unknown"
+    for c in cat_cols:
+        X[c] = X[c].astype("object").fillna("Unknown")
+
+    # one-hot encode categoricals
+    X = pd.get_dummies(X, columns=cat_cols, drop_first=False)
+
+    return X, numeric_cols
+
+
+def prepare_data(df: pd.DataFrame):
+    # Ensure required columns exist
     missing = [c for c in FEATURES + [TARGET_COL] if c not in df.columns]
     if missing:
         raise ValueError(
@@ -13,64 +45,29 @@ def prepare_data(df):
 
     # Drop rows with missing target
     df = df.dropna(subset=[TARGET_COL])
+
+    # Ensure target is int labels
+    df[TARGET_COL] = pd.to_numeric(df[TARGET_COL], errors="coerce")
+    df = df.dropna(subset=[TARGET_COL])
     df[TARGET_COL] = df[TARGET_COL].astype(int)
 
-    # Split
     X = df[FEATURES].copy()
     y = df[TARGET_COL].copy()
 
-    # Identify numeric columns
-    numeric_cols = [c for c in FEATURES if c not in CATEGORICAL_COLS]
-    cat_cols = [c for c in CATEGORICAL_COLS if c in X.columns]
-
-    # --- Impute missing ---
-    # numeric -> median
-    for c in numeric_cols:
-        X[c] = pd.to_numeric(X[c], errors="coerce")
-        X[c] = X[c].fillna(X[c].median())
-
-    # categorical -> "Unknown"
-    for c in cat_cols:
-        X[c] = X[c].astype("object").fillna("Unknown")
-
-    # --- One-hot encode categoricals ---
-    X = pd.get_dummies(X, columns=cat_cols, drop_first=False)
+    X, numeric_cols = _impute_and_encode(X)
 
     return X, y, numeric_cols
 
 
-# -------------------------------------------------
-# Inference preprocessing (for UI / prediction)
-# -------------------------------------------------
-
-def prepare_features(df):
+def prepare_features(df: pd.DataFrame) -> pd.DataFrame:
     """
-    Apply SAME preprocessing as prepare_data,
-    but without using TARGET column.
-    Used for UI prediction.
+    Inference preprocessing (no target column required).
+    Must match prepare_data() behavior.
     """
-
-    # ensure feature columns exist
     missing = [c for c in FEATURES if c not in df.columns]
     if missing:
-        raise ValueError(f"Missing features for prediction: {missing}")
+        raise ValueError(f"Missing feature columns: {missing}")
 
     X = df[FEATURES].copy()
-
-    # ---- numeric / categorical split ----
-    numeric_cols = [c for c in FEATURES if c not in CATEGORICAL_COLS]
-    cat_cols = [c for c in CATEGORICAL_COLS if c in X.columns]
-
-    # ---- numeric imputation ----
-    for c in numeric_cols:
-        X[c] = pd.to_numeric(X[c], errors="coerce")
-        X[c] = X[c].fillna(X[c].median())
-
-    # ---- categorical imputation ----
-    for c in cat_cols:
-        X[c] = X[c].astype("object").fillna("Unknown")
-
-    # ---- one-hot encoding ----
-    X = pd.get_dummies(X, columns=cat_cols, drop_first=False)
-
+    X, _ = _impute_and_encode(X)
     return X
