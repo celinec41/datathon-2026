@@ -166,19 +166,25 @@ DATATHON-2026/
 
 ## ▶️ How to Run
 
-1. Install required packages:
+### 1. Clone the Repository
+git clone https://github.com/your-username/datathon-2026.git
+cd datathon-2026
 
-```bash
-pip install pandas numpy scikit-learn xgboost shap matplotlib seaborn
-```
+### 2. Create Virtual Environment (Recommended)
+python3 -m venv venv
+source venv/bin/activate   # Mac/Linux
+# venv\Scripts\activate    # Windows
 
-2. Open the notebook:
+### 3. Install Dependencies
+pip install -r requirements.txt
+# If pip is not recognized:
+# python3 -m pip install -r requirements.txt
 
-```bash
+### 4A. Run Jupyter Notebook
 jupyter notebook final_submission.ipynb
-```
 
-3. Run all cells to train the model and test custom user inputs.
+### 4B. Run Streamlit App (Interactive UI)
+streamlit run ui/app_streamlit.py
 
 ---
 
