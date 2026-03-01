@@ -1,62 +1,56 @@
-# 📊 Predicting Financial Impact of Economic Shocks Using Machine Learning
-
-## 🔍 Overview
-
-This project models how individuals with different demographic and financial profiles respond to large-scale economic shocks similar to COVID-19.
-
-Using supervised machine learning, we estimate how an individual's financial situation may change during a future crisis.
-Rather than predicting a single outcome, the model produces **probability estimates** for multiple possible financial impacts.
-
-Given a person's financial and demographic characteristics, the model predicts the probability that their financial situation will:
-
-* **Improve**
-* **Remain stable**
-* **Worsen**
-
-These probability estimates allow us to quantify individual financial vulnerability and uncertainty under future economic shocks.
-
-The final system functions as a simple prediction tool:
-a user inputs their financial profile, and the model returns the probability distribution of potential financial outcomes.
+# 📊 Predicting Financial Impact of Economic Shocks  
+### SDSS Datathon 2026 Team 36
 
 ---
 
-## 🎯 Research Question
+## 🔍 Problem Overview
 
-> Given an individual's demographic and financial characteristics, what is the probability distribution of their financial outcome during a future economic shock similar to COVID-19?
+Economic shocks such as COVID-19 affect households differently.  
+Some experience financial deterioration, others remain stable, and a small portion improve.
 
-We further examine:
+**Research Question**
 
-* Which groups need protection during crises?
-* Which financial factors most strongly drive financial deterioration？
-* How predicted outcomes vary across provinces？
+> Given an individual's demographic and financial characteristics, what is the probability distribution of their financial outcome during a future economic shock?
+
+Instead of predicting a single deterministic outcome, our model estimates:
+
+- 🟢 Probability of **Improved**
+- 🟡 Probability of **Stayed the Same**
+- 🔴 Probability of **Worsened**
+
+This allows us to measure financial vulnerability and resilience at the individual level.
 
 ---
 
 ## 📂 Dataset
 
-Source: **Survey of Financial Security (SFS)**
+**Source:** Survey of Financial Security (SFS)
 
-**Target Variable**
+### 🎯 Target Variable
 
-* `PATTSITC`
+`PATTSITC`
 
-  * 1 = Improved
-  * 2 = Worsened
-  * 3 = Stayed Same
+| Code | Meaning |
+|------|---------|
+| 1 | Improved |
+| 2 | Worsened |
+| 3 | Stayed Same |
 
-**Key Input Features**
+---
 
-* Age group
-* Province
-* Education level
-* After-tax income
-* Homeownership status
-* Mortgage debt
-* Student loan debt
-* Credit card debt
-* Line of credit
-* Bank deposits
-* TFSA balance
+### 📥 Input Features
+
+- Age Group  
+- Province of Residence  
+- Education Level  
+- After-Tax Income  
+- Homeownership Status  
+- Mortgage Debt  
+- Student Loan Debt  
+- Credit Card Debt  
+- Line of Credit Debt  
+- Bank Deposits  
+- TFSA Balance  
 
 ---
 
@@ -64,73 +58,76 @@ Source: **Survey of Financial Security (SFS)**
 
 ### 1️⃣ Data Preprocessing
 
-* Cleaned missing values
-* Encoded categorical variables using One-Hot Encoding
-* Split dataset into 80% training / 20% testing
+- Removed missing / invalid survey codes  
+- One-Hot Encoded categorical variables  
+- Train/Test split: 80% / 20%
+
+---
 
 ### 2️⃣ Model Development
 
 We trained multi-class classification models:
 
-* **Multinomial Logistic Regression**
-* **Random Forest**
-* (Optional) XGBoost
+- **Multinomial Logistic Regression**
+- **Random Forest**
+- (Optional) XGBoost
 
-### 3️⃣ Evaluation Metrics
+Models output full probability distributions:
 
-* Accuracy
-* Macro F1-Score
-* Confusion Matrix
+\[
+P(Improved), \quad P(Worsened), \quad P(Stayed\ Same)
+\]
+
+Final prediction:
+
+\[
+Prediction = argmax(P)
+\]
 
 ---
 
-## 🤖 Prediction Logic
+### 3️⃣ Evaluation Metrics
 
-The trained model estimates probabilities:
+- Accuracy  
+- Macro F1-Score  
+- Confusion Matrix  
 
-[
-P(Improved), \quad P(Worsened), \quad P(Stayed\ Same)
-]
-
-The predicted class is:
-
-[
-\text{Prediction} = \arg\max(P)
-]
-
-The tool returns:
-
-* Predicted category (1, 2, or 3)
-* Associated probability (confidence score)
+We prioritize **Macro F1-Score** to fairly evaluate class imbalance.
 
 ---
 
 ## 🧪 Example Prediction
 
-**User Input**
+### User Profile
 
-* Age Group: 26–35
-* Province: Ontario
-* Income: $55,000
-* Credit Card Debt: $8,000
-* Student Loan: $15,000
-* Savings: $2,500
-* Homeowner: No
+- Age: 26–35  
+- Province: Ontario  
+- Income: $55,000  
+- Credit Card Debt: $8,000  
+- Student Loan: $15,000  
+- Savings: $2,500  
+- Homeowner: No  
 
-**Model Output**
+### Model Output
 
-Predicted Outcome:
-**2 — Worsened**
+```
+Predicted Outcome: Worsened
 Confidence: 0.64
+
+Probability Distribution:
+Improved: 0.14
+Worsened: 0.64
+Stayed Same: 0.22
+```
 
 ---
 
-## 📈 Key Findings
+## 📈 Key Insights
 
-* High unsecured debt (credit card & line of credit) strongly predicts worsening outcomes.
-* Low liquidity significantly increases vulnerability.
-* Province remains a statistically significant factor after controlling for income and debt.
-* Younger age groups exhibit higher predicted vulnerability during economic shocks.
+- High unsecured debt strongly predicts worsening outcomes  
+- Low liquidity increases vulnerability  
+- Province remains statistically significant  
+- Younger age groups show higher predicted vulnerability  
 
 ---
 
@@ -139,15 +136,14 @@ Confidence: 0.64
 ```
 DATATHON-2026/
 │
-├── final_submission.ipynb        
-├── README.md                    
-├── requirements.txt           
+├── final_submission.ipynb
+├── README.md
+├── requirements.txt
 │
 ├── data/
 │   └── personal_finance_dataset.xlsx
 │
-├── src/                        
-│   ├── __init__.py
+├── src/
 │   ├── config.py
 │   ├── data_load.py
 │   ├── preprocess.py
@@ -156,55 +152,104 @@ DATATHON-2026/
 │   ├── predict_user.py
 │   └── artifacts.py
 │
-├── ui/                          
+├── ui/
 │   └── app_streamlit.py
-├── .gitignore
-└── venv/                    
+│
+└── artifacts/
 ```
 
 ---
 
 ## ▶️ How to Run
 
-1. Clone the Repository
+### 1️⃣ Clone Repository
+
+```bash
 git clone https://github.com/your-username/datathon-2026.git
 cd datathon-2026
+```
 
-3. Create Virtual Environment (Recommended)
+### 2️⃣ Create Virtual Environment
+
+Mac / Linux:
+
+```bash
 python3 -m venv venv
-source venv/bin/activate   # Mac/Linux
-venv\Scripts\activate    # Windows
+source venv/bin/activate
+```
 
-3. Install Dependencies
+Windows:
+
+```bash
+python -m venv venv
+venv\Scripts\activate
+```
+
+### 3️⃣ Install Dependencies
+
+```bash
 pip install -r requirements.txt
+```
+
 If pip is not recognized:
+
+```bash
 python3 -m pip install -r requirements.txt
+```
 
-4A. Run Jupyter Notebook
+### 4️⃣ Run Notebook
+
+```bash
 jupyter notebook final_submission.ipynb
+```
 
-4B. Run Streamlit App (Interactive UI)
+### 5️⃣ Run Interactive UI (Optional)
+
+```bash
 streamlit run ui/app_streamlit.py
+```
 
 ---
 
 ## ⚠️ Limitations
 
-* Outcome variable is self-reported financial perception.
-* The model does not include macroeconomic indicators.
-* Predictions are for analytical purposes only and should not be interpreted as financial advice.
+- Outcome variable is self-reported perception  
+- No macroeconomic indicators included  
+- Cross-sectional dataset  
+- Not intended for financial or credit decisions  
 
 ---
 
 ## 🛡 Ethical Considerations
 
-* No personally identifiable information was used.
-* Model bias across provinces and age groups was evaluated.
-* The system is not intended for real credit or lending decisions.
+- No personally identifiable information used  
+- Bias across age and province evaluated  
+- Not designed for automated lending decisions  
 
 ---
 
-# 🏆 Why This Project Matters
+## 🤖 AI Usage Disclosure
 
-By identifying which households are most vulnerable to economic shocks, this model provides actionable insights that can inform targeted financial support programs, policy design, and resilience planning across Canadian provinces and life stages.
+AI tools (e.g., ChatGPT) were used for:
 
+- Debugging assistance  
+- Code structure suggestions  
+- Documentation formatting  
+
+All modeling logic, feature engineering, and evaluation decisions were implemented and validated by the team.
+
+---
+
+## 🏆 Impact
+
+This project helps identify:
+
+- Financially vulnerable households  
+- Risk factors driving economic deterioration  
+- Regional disparities in financial resilience  
+
+These insights can inform:
+
+- Targeted support programs  
+- Crisis-response policy  
+- Financial resilience planning  
