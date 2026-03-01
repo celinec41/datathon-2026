@@ -15,7 +15,7 @@ FEATURES = [
     "Line of Credit Debt",
     "Bank Deposits",
     "TFSA Balance",
-    "has_credit_card",
+    "Credit Card Payment",
 ]
 
 CATEGORICAL_COLS = [
@@ -23,6 +23,7 @@ CATEGORICAL_COLS = [
     "Province of residence",
     "Education Level",
     "Home Ownership",
+    "Credit Card Payment"
 ]
 
 RANDOM_STATE = 42
@@ -30,7 +31,7 @@ TEST_SIZE = 0.2
 DEFAULT_MODEL = "logreg"
 
 LABEL_MAP = {
-    1: "Class 1",
-    2: "Class 2",
-    3: "Class 3",
+    1: "Improved",
+    2: "Worsened",
+    3: "Stayed same",
 }
