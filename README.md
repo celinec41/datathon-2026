@@ -1,4 +1,4 @@
-# 📊 Predicting Financial Impact of Economic Shocks  
+# 📊 Predicting Financial Impact of Economic Shocks Using Machine Learning
 ### SDSS Datathon 2026 Team 36
 
 ---
