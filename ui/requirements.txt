@@ -45,3 +45,8 @@ tqdm==4.67.3
 traitlets==5.14.3
 wcwidth==0.6.0
 xgboost==3.2.0
+fastapi
+uvicorn[standard]
+pydantic
+streamlit
+plotly
