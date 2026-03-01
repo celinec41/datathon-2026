@@ -166,24 +166,24 @@ DATATHON-2026/
 
 ## ▶️ How to Run
 
-### 1. Clone the Repository
+1. Clone the Repository
 git clone https://github.com/your-username/datathon-2026.git
 cd datathon-2026
 
-### 2. Create Virtual Environment (Recommended)
+3. Create Virtual Environment (Recommended)
 python3 -m venv venv
 source venv/bin/activate   # Mac/Linux
-# venv\Scripts\activate    # Windows
+venv\Scripts\activate    # Windows
 
-### 3. Install Dependencies
+3. Install Dependencies
 pip install -r requirements.txt
-# If pip is not recognized:
-# python3 -m pip install -r requirements.txt
+If pip is not recognized:
+python3 -m pip install -r requirements.txt
 
-### 4A. Run Jupyter Notebook
+4A. Run Jupyter Notebook
 jupyter notebook final_submission.ipynb
 
-### 4B. Run Streamlit App (Interactive UI)
+4B. Run Streamlit App (Interactive UI)
 streamlit run ui/app_streamlit.py
 
 ---
