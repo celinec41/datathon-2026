@@ -24,8 +24,6 @@ RENAME = {
     "PWNETWPG": "Net Worth",
 }
 
-INV_RENAME = {v: k for k, v in RENAME.items()}
-
 def load_data():
     df = pd.read_excel(DATA_PATH, sheet_name=SHEET_NAME)
 
@@ -33,34 +31,39 @@ def load_data():
     rename_existing = {k: v for k, v in RENAME.items() if k in df.columns}
     df = df.rename(columns=rename_existing)
 
-    # True missing: 9 = Not stated
+    # -----------------------------
+    # Missing rules from codebook
+    # -----------------------------
+
+    # PEDUCMIE: 9 = Not stated
     if "Education Level" in df.columns:
         df["Education Level"] = df["Education Level"].replace(9, np.nan)
 
+    # PFMTYPG: 9 = Not stated
+    if "Family Type" in df.columns:
+        df["Family Type"] = df["Family Type"].replace(9, np.nan)
+
+    # PNBEARG: 9 = Not stated
     if "Number of Earners" in df.columns:
         df["Number of Earners"] = df["Number of Earners"].replace(9, np.nan)
 
-    # Work status: 6 valid skip, 9 not stated -> treat as missing
+    # PLFFPTME: 6 valid skip, 9 not stated -> missing
     if "Work Status 2022" in df.columns:
         df["Work Status 2022"] = df["Work Status 2022"].replace([6, 9], np.nan)
 
-    # Credit card payment:
-    # - 6 valid skip = no credit card (structural)
-    # - 9 not stated (if present) = missing
+    # PATTCRU: 5 and 6 are missing
     if "Credit Card Payment" in df.columns:
-        df["Credit Card Payment"] = df["Credit Card Payment"].replace(9, np.nan)
+        df["Credit Card Payment"] = df["Credit Card Payment"].replace([5, 6], np.nan)
 
-        df["has_credit_card"] = np.nan
-        known = df["Credit Card Payment"].notna()
-        df.loc[known, "has_credit_card"] = (df.loc[known, "Credit Card Payment"] != 6).astype(int)
+    # -----------------------------
+    # Structural rules
+    # -----------------------------
 
-        df.loc[df["Credit Card Payment"] == 6, "Credit Card Payment"] = np.nan
-
-    # Structural: home value = 0 if renting (Home Ownership = 3)
+    # Home value = 0 if renting (Home Ownership = 3)
     if ("Home Ownership" in df.columns) and ("Home Value" in df.columns):
         df.loc[df["Home Ownership"] == 3, "Home Value"] = 0
 
-    # Structural: mortgage debt = 0 if not homeowner (Home Ownership != 2)
+    # Mortgage debt = 0 if not own with mortgage (Home Ownership != 2)
     if ("Home Ownership" in df.columns) and ("Mortgage Debt" in df.columns):
         df.loc[df["Home Ownership"] != 2, "Mortgage Debt"] = 0
 
